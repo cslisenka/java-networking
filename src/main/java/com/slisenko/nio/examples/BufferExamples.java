@@ -8,6 +8,21 @@ import java.nio.ByteBuffer;
  * capacity - max size of buffer
  * position - where we are
  * limit - max position we can read, for writing limit=capacity
+ *
+ * TODO draw what happens with buffer
+ * flip
+ * compact
+ * clear
+ *
+ * allocateDirect - creates buffer in system space of OS, not in java app memory
+ * drivers of file system/network devises have direct access to this block of memory (because of vitual memory)
+ * and copying from this buffer to fs/network can be done via DMA, not using CPU
+ *
+ * Is buffer thread-safe?
+ *
+ * Why not to create direct buffer all the time?
+ * We can wrap exisring array. This can be faster then creating direct buffer.
+ * Creating direct buffer takes more time then regular. It is better to create it once and use it.
  */
 public class BufferExamples {
 

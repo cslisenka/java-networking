@@ -33,9 +33,6 @@ public class PollingNioServer {
             sockets.forEach((socket, buffer) -> {
                 try {
                     int bytesRead = socket.read(buffer); // Reading, non-blocking call
-                    if (bytesRead > 0) {
-                        log("Reading from " + socket.getRemoteAddress() + ", bytes read=" + bytesRead);
-                    }
                     if (bytesRead == -1) { // Connection closed from client side
                         log("Connection closed " + socket.getRemoteAddress());
                         sockets.remove(socket);
@@ -43,36 +40,22 @@ public class PollingNioServer {
                     }
 
                     // TODO detect that input message is not partially received
-                    if (bytesRead > 0) {
+                    if (bytesRead > 0 && buffer.get(buffer.position() - 1) == '\n') {
+                        log("Reading from " + socket.getRemoteAddress() + ", bytes read=" + bytesRead);
                         buffer.flip();
-                        StringBuilder result = new StringBuilder();
-                        for (int i = 0; i < buffer.limit() - 1; i++) {
-                            byte c = buffer.get(i);
-                            if (c != '\r' && c != '\n') {
-                                result.append((char)c);
-                            }
-                        }
-                        result.append(", server time=" + System.currentTimeMillis())
-                                .append('\r').append('\n');
+
+                        String clientMessage = new String(buffer.array(), buffer.position(), buffer.limit());
+                        String response = clientMessage.replace("\r\n", "") +
+                                ", server time=" + System.currentTimeMillis() + "\r\n";
 
                         // Writing response to buffer
                         buffer.clear();
-                        buffer.put(ByteBuffer.wrap(result.toString().getBytes()));
+                        buffer.put(ByteBuffer.wrap(response.getBytes()));
                         buffer.flip();
 
-                        while (buffer.hasRemaining()) { // Reading from buffer
-                            int bytesWritten = socket.write(buffer);
-                            log("Writing to " + socket.getRemoteAddress() + ", bytes written=" + bytesWritten);
-
-                            if (bytesWritten == 0) {
-                                buffer.compact();
-                                break;
-                            }
-                        }
-
-                        if (buffer.hasRemaining()) {
-                            log("has remaining!!!");
-                        }
+                        int bytesWritten = socket.write(buffer);
+                        log("Writing to " + socket.getRemoteAddress() + ", bytes written=" + bytesWritten);
+                        buffer.compact();
                     }
                 } catch (IOException e) {
                     log("error " + e.getMessage());

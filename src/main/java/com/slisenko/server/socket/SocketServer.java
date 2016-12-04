@@ -1,9 +1,6 @@
 package com.slisenko.server.socket;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -12,7 +9,10 @@ import java.util.concurrent.Executors;
 public class SocketServer {
 
     public static void main(String[] args) throws IOException {
-        ExecutorService pool = Executors.newFixedThreadPool(200);
+        // Using pool we need semaphore to reject too many connections
+        // Semaphore - block or respond "server hot available"
+        // If no, it is easy to DDoS us
+        ExecutorService pool = Executors.newFixedThreadPool(200); // Request processing pool
         ServerSocket serverSocket = new ServerSocket(45000);
         log("Server started at port 45000. Listening client connections...");
 
@@ -23,6 +23,8 @@ public class SocketServer {
 
 //                handle(socket); // Handling in same thread, only one client is served
 //                pool.submit(() -> handle(socket)); // Handling in thread pool
+
+                // Having threads it is easy to DDoS us because too many threads are created
                 new Thread(() -> handle(socket)).start(); // Handling always in new thread
             }
         } finally {
@@ -34,15 +36,18 @@ public class SocketServer {
     private static void handle(Socket socket) {
         log("client connected: " + socket.getRemoteSocketAddress());
         try {
+            InputStream in = socket.getInputStream();
+            OutputStream out = socket.getOutputStream();
+
             // Receive message from client
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
             String request = reader.readLine(); // Blocking call
 
             log("receive from " + socket.getRemoteSocketAddress() + " > " + request);
 
             // Send response
             String response = request + ", servertime=" + System.currentTimeMillis();
-            PrintWriter writer = new PrintWriter(socket.getOutputStream());
+            PrintWriter writer = new PrintWriter(out);
             writer.println(response); // Blocking call
             writer.flush();
 

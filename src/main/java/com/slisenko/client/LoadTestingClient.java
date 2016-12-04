@@ -13,14 +13,15 @@ public class LoadTestingClient {
     public static void main(String[] args) throws InterruptedException, IOException {
         List<Socket> sockets = new ArrayList<Socket>();
         System.out.println("Opening many sockets");
-        for (int i = 0; i < 20_000; i++) {
+        for (int i = 0; i < 10_000; i++) {
             try {
-                sockets.add(new Socket("localhost", 45000));
+                sockets.add(new Socket("localhost", 45001));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
+        // TODO we probably do not need to write data, just receive user input here and close the sockets
         System.out.print("Writing data to sockets");
 
         new Thread() {

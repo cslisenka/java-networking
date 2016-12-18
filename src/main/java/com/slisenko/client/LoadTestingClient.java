@@ -8,38 +8,19 @@ import java.util.Scanner;
 
 public class LoadTestingClient {
 
-    private static boolean isRunning = true;
-
     public static void main(String[] args) throws InterruptedException, IOException {
         List<Socket> sockets = new ArrayList<Socket>();
-        System.out.println("Opening many sockets");
+        System.out.println("Opening sockets");
         for (int i = 0; i < 10_000; i++) {
             try {
-                sockets.add(new Socket("localhost", 45001));
+                sockets.add(new Socket("localhost", 45000));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        // TODO we probably do not need to write data, just receive user input here and close the sockets
-        System.out.print("Writing data to sockets");
-
-        new Thread() {
-            public void run() {
-                new Scanner(System.in).next();
-                isRunning = false;
-            }
-        }.start();
-
-        // Start writing
-        while (isRunning) {
-            for (Socket socket : sockets) {
-                try {
-                    socket.getOutputStream().write(1);
-                } catch (IOException e) {} // Never do this
-            }
-            delay(200);
-        }
+        System.out.print("Print any string to exit");
+        new Scanner(System.in).next();
 
         // Closing connections
         System.out.print("Closing connections");
@@ -50,11 +31,5 @@ public class LoadTestingClient {
                 System.out.println("error closing socket " + e.getMessage());
             }
         }
-    }
-
-    private static void delay(int mills) {
-        try {
-            Thread.sleep(mills);
-        } catch (InterruptedException e) {} // Never do this
     }
 }

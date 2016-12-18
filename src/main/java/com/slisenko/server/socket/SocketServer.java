@@ -5,30 +5,26 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 public class SocketServer {
 
     public static void main(String[] args) throws IOException {
-        // Using pool we need semaphore to reject too many connections
-        // Semaphore - block or respond "server hot available"
-        // If no, it is easy to DDoS us
-        ExecutorService pool = Executors.newFixedThreadPool(200); // Request processing pool
+        Semaphore semaphore = new Semaphore(300);
+        ExecutorService pool = Executors.newFixedThreadPool(200);
         ServerSocket serverSocket = new ServerSocket(45000);
-        log("Server started at port 45000. Listening client connections...");
+        log("Server started at port 45000. Listening for client connections...");
 
         try {
             while (true) {
                 // Blocking call, never null
                 final Socket socket = serverSocket.accept();
-
-//                handle(socket); // Handling in same thread, only one client is served
-//                pool.submit(() -> handle(socket)); // Handling in thread pool
-
-                // Having threads it is easy to DDoS us because too many threads are created
-                new Thread(() -> handle(socket)).start(); // Handling always in new thread
+                handle(socket); // Handle in same thread
+//                pool.submit(() -> handle(socket)); // Handle in thread pool
+//                new Thread(() -> handle(socket)).start(); // Handle in always new thread
             }
         } finally {
-//            pool.shutdown();
+            pool.shutdown();
             serverSocket.close();
         }
     }
@@ -39,19 +35,19 @@ public class SocketServer {
             InputStream in = socket.getInputStream();
             OutputStream out = socket.getOutputStream();
 
-            // Receive message from client
+            // Receive message from the client
             BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            String request = reader.readLine(); // Blocking call
+            String clientRequest = reader.readLine(); // Blocking call
 
-            log("receive from " + socket.getRemoteSocketAddress() + " > " + request);
+            log("receive from " + socket.getRemoteSocketAddress() + " > " + clientRequest);
 
             // Send response
-            String response = request + ", servertime=" + System.currentTimeMillis();
+            String serverResponse = clientRequest + ", servertime=" + System.currentTimeMillis();
             PrintWriter writer = new PrintWriter(out);
-            writer.println(response); // Blocking call
+            writer.println(serverResponse); // Blocking call
             writer.flush();
 
-            log("send to " + socket.getRemoteSocketAddress() + " > " + response);
+            log("send to " + socket.getRemoteSocketAddress() + " > " + serverResponse);
         } catch (IOException e) {
             log("error " + e.getMessage());
         } finally {

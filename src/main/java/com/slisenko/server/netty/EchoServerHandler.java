@@ -10,9 +10,7 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         System.out.println("Server received " + msg);
-        // TODO how to read this message?
         ctx.write(msg);
-        // TODO if we don't write same message back we should release it
     }
 
     @Override

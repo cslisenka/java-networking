@@ -3,7 +3,13 @@ package com.slisenko.server.netty;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 
 public class NettyServer {
 
@@ -40,7 +46,15 @@ public class NettyServer {
                 // We can add encode/decode handlers. For example HTTP or Protobuf handler
                 // What if we need to do encoding/decoding and not block event loop?
                 // Netty has feature of EventExecutor as separate thread
-                .childHandler(new EchoServerHandler()); // Handler is our business logic of receiving/sending messages
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        ch.pipeline().addLast(new LineBasedFrameDecoder(1000));
+                        ch.pipeline().addLast(new StringDecoder());
+                        ch.pipeline().addLast(new StringEncoder());
+                        ch.pipeline().addLast(new EchoServerHandler());
+                    }
+                });
 
             ChannelFuture f = b.bind(45002).sync();
             System.out.println("Starting nio server at " + f.channel().localAddress());

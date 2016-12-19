@@ -13,7 +13,7 @@ public class LoadTestingClient {
         System.out.println("Opening sockets");
         for (int i = 0; i < 10_000; i++) {
             try {
-                sockets.add(new Socket("localhost", 45000));
+                sockets.add(new Socket("localhost", 45002));
             } catch (IOException e) {
                 e.printStackTrace();
             }

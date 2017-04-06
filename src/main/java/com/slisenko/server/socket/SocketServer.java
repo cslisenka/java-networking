@@ -5,12 +5,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 
 public class SocketServer {
 
     public static void main(String[] args) throws IOException {
-        Semaphore semaphore = new Semaphore(300);
         ExecutorService pool = Executors.newFixedThreadPool(200);
         ServerSocket serverSocket = new ServerSocket(45000);
         log("Server started at port 45000. Listening for client connections...");
@@ -19,12 +17,12 @@ public class SocketServer {
             while (true) {
                 // Blocking call, never null
                 final Socket socket = serverSocket.accept();
-                handle(socket); // Handle in same thread
+//                handle(socket); // Handle in same thread
 //                new Thread(() -> handle(socket)).start(); // Handle in always new thread
-//                pool.submit(() -> handle(socket)); // Handle in thread pool
+                pool.submit(() -> handle(socket)); // Handle in thread pool
             }
         } finally {
-            pool.shutdown();
+//            pool.shutdown();
             serverSocket.close();
         }
     }

@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SelectorNioServer {
+public class NIOServer {
 
     private static final Map<SocketChannel, ByteBuffer> sockets = new ConcurrentHashMap<>();
 

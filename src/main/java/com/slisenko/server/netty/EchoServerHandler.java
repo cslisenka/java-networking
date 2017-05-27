@@ -10,9 +10,9 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         System.out.println("Server received " + msg);
-        ctx.write(msg);
-        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER)
-            .addListener(ChannelFutureListener.CLOSE);
+        ctx.write(msg + " server time: " + System.currentTimeMillis() + "\r\n");
+        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER);
+//            .addListener(ChannelFutureListener.CLOSE); // Close connection after response
     }
 
     @Override
